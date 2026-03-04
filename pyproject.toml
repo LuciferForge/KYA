@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "kya"
+name = "kya-agent"
 version = "0.1.0"
 description = "Know Your Agent — An open standard for AI agent identity, compliance, and auditability"
 readme = "README.md"

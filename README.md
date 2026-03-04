@@ -18,7 +18,7 @@ KYA fills that gap.
 ## Quick Start
 
 ```bash
-pip install kya
+pip install kya-agent
 
 # Generate a skeleton agent card
 kya init --agent-id "your-org/your-agent" --name "My Agent"
