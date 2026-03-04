@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://luciferforge.github.io/kya/v0.1/agent-card.schema.json",
+  "title": "KYA Agent Card",
+  "description": "Know Your Agent (KYA) v0.1 — A standard identity and compliance card for AI agents. Defines who the agent is, what it can do, and how it has been audited.",
+  "type": "object",
+  "required": ["kya_version", "agent_id", "name", "version", "purpose", "capabilities", "owner"],
+  "properties": {
+    "kya_version": {
+      "type": "string",
+      "const": "0.1",
+      "description": "KYA schema version this card conforms to."
+    },
+    "agent_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]+\\/[a-zA-Z0-9_.-]+$",
+      "description": "Globally unique agent identifier in the format 'owner/agent-name'. Immutable once registered.",
+      "examples": ["luciferforge/mcp-security-audit", "acme-corp/data-analyst-v2"]
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "description": "Human-readable display name for the agent."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+",
+      "description": "Semantic version of the agent software."
+    },
+    "purpose": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 500,
+      "description": "Clear, concise description of the agent's intended function. Must be specific enough for a compliance auditor to evaluate whether observed behavior matches declared purpose."
+    },
+    "agent_type": {
+      "type": "string",
+      "enum": ["assistant", "autonomous", "semi-autonomous", "tool", "pipeline", "monitor", "other"],
+      "description": "Classification of agent autonomy level."
+    },
+    "owner": {
+      "type": "object",
+      "required": ["name", "contact"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Legal entity or individual responsible for the agent."
+        },
+        "contact": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact email for security disclosures and compliance inquiries."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Owner's website or organization URL."
+        }
+      },
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "required": ["declared"],
+      "properties": {
+        "declared": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "risk_level"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Capability identifier (e.g., 'file_read', 'network_access', 'code_execution')."
+              },
+              "description": {
+                "type": "string",
+                "description": "What this capability does and why the agent needs it."
+              },
+              "risk_level": {
+                "type": "string",
+                "enum": ["low", "medium", "high", "critical"],
+                "description": "Self-assessed risk level of this capability."
+              },
+              "scope": {
+                "type": "string",
+                "description": "Boundaries of this capability (e.g., 'read-only access to /data directory')."
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Capabilities the agent declares it has. Must be exhaustive — undeclared capabilities are violations."
+        },
+        "denied": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Capabilities the agent explicitly does NOT have and should never acquire."
+        }
+      },
+      "additionalProperties": false
+    },
+    "data_access": {
+      "type": "object",
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Data sources the agent reads from."
+        },
+        "destinations": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Where agent outputs are sent."
+        },
+        "pii_handling": {
+          "type": "string",
+          "enum": ["none", "processes", "stores", "transmits"],
+          "description": "Highest level of PII interaction."
+        },
+        "retention_policy": {
+          "type": "string",
+          "description": "How long data is retained and deletion policy."
+        }
+      },
+      "additionalProperties": false
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "last_audit": {
+          "type": "object",
+          "properties": {
+            "date": { "type": "string", "format": "date" },
+            "auditor": { "type": "string" },
+            "tool": { "type": "string", "description": "Audit tool used (e.g., 'mcp-security-audit v0.2.0')." },
+            "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "findings_count": { "type": "integer", "minimum": 0 },
+            "report_url": { "type": "string", "format": "uri" }
+          },
+          "additionalProperties": false
+        },
+        "known_vulnerabilities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "severity": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+              "description": { "type": "string" },
+              "mitigated": { "type": "boolean" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "injection_tested": {
+          "type": "boolean",
+          "description": "Whether the agent has been tested against prompt injection attacks."
+        }
+      },
+      "additionalProperties": false
+    },
+    "compliance": {
+      "type": "object",
+      "properties": {
+        "frameworks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Compliance frameworks the agent claims conformity with.",
+          "examples": [["EU-AI-Act", "NIST-AI-RMF", "SOC2", "ISO-27001"]]
+        },
+        "risk_classification": {
+          "type": "string",
+          "enum": ["minimal", "limited", "high", "unacceptable"],
+          "description": "EU AI Act risk classification."
+        },
+        "human_oversight": {
+          "type": "string",
+          "enum": ["none", "human-on-the-loop", "human-in-the-loop", "human-above-the-loop"],
+          "description": "Level of human oversight in agent operations."
+        }
+      },
+      "additionalProperties": false
+    },
+    "behavior": {
+      "type": "object",
+      "properties": {
+        "logging_enabled": {
+          "type": "boolean",
+          "description": "Whether the agent produces structured decision logs."
+        },
+        "log_format": {
+          "type": "string",
+          "description": "Format of decision logs (e.g., 'ai-decision-tracer', 'OpenTelemetry', 'jsonl')."
+        },
+        "max_actions_per_minute": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Rate limit on agent actions. 0 = unlimited."
+        },
+        "kill_switch": {
+          "type": "boolean",
+          "description": "Whether the agent can be immediately halted by a human operator."
+        },
+        "escalation_policy": {
+          "type": "string",
+          "description": "What happens when the agent encounters a situation outside its declared purpose."
+        }
+      },
+      "additionalProperties": false
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "agent_id": { "type": "string" },
+          "relationship": { "type": "string", "enum": ["calls", "delegates_to", "supervised_by", "data_from"] }
+        },
+        "additionalProperties": false
+      },
+      "description": "Other agents or services this agent depends on."
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "registered_at": { "type": "string", "format": "date-time" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

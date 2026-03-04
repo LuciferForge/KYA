@@ -1,0 +1,71 @@
+{
+  "kya_version": "0.1",
+  "agent_id": "luciferforge/mcp-security-audit",
+  "name": "MCP Security Audit",
+  "version": "0.2.0",
+  "purpose": "Scans MCP servers for security vulnerabilities including prompt injection patterns, risky tool configurations, and misaligned capabilities. Produces audit reports with risk scores and remediation guidance.",
+  "agent_type": "tool",
+  "owner": {
+    "name": "LuciferForge",
+    "contact": "luciferforge@proton.me",
+    "url": "https://github.com/LuciferForge"
+  },
+  "capabilities": {
+    "declared": [
+      {
+        "name": "mcp_server_connection",
+        "description": "Connects to MCP servers via stdio or SSE transport to enumerate tools and resources.",
+        "risk_level": "medium",
+        "scope": "Read-only enumeration. Does not invoke tools or modify server state."
+      },
+      {
+        "name": "tool_classification",
+        "description": "Classifies MCP server tools by risk category (filesystem, network, code execution, etc.).",
+        "risk_level": "low",
+        "scope": "Static analysis of tool names, descriptions, and parameters."
+      },
+      {
+        "name": "report_generation",
+        "description": "Generates text and JSON audit reports with findings and risk scores.",
+        "risk_level": "low",
+        "scope": "Writes to stdout or specified output file."
+      }
+    ],
+    "denied": ["code_execution", "network_requests", "file_modification", "data_exfiltration"]
+  },
+  "data_access": {
+    "sources": ["MCP server tool listings", "MCP server resource listings"],
+    "destinations": ["stdout", "local file system (report output)"],
+    "pii_handling": "none",
+    "retention_policy": "No data retained. Reports are stateless and written once."
+  },
+  "security": {
+    "last_audit": {
+      "date": "2026-03-04",
+      "auditor": "LuciferForge (self-audit)",
+      "tool": "manual code review + mcp-security-audit v0.2.0",
+      "score": 92,
+      "findings_count": 0
+    },
+    "known_vulnerabilities": [],
+    "injection_tested": true
+  },
+  "compliance": {
+    "frameworks": ["NIST-AI-RMF", "OWASP-LLM-Top-10"],
+    "risk_classification": "minimal",
+    "human_oversight": "human-above-the-loop"
+  },
+  "behavior": {
+    "logging_enabled": false,
+    "log_format": "none",
+    "max_actions_per_minute": 0,
+    "kill_switch": true,
+    "escalation_policy": "Exits with non-zero status code on unrecoverable errors. No autonomous retry."
+  },
+  "dependencies": [],
+  "metadata": {
+    "created_at": "2026-03-04T00:00:00Z",
+    "updated_at": "2026-03-04T00:00:00Z",
+    "tags": ["security", "mcp", "audit", "agent-safety"]
+  }
+}
