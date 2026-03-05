@@ -12,8 +12,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SCHEMA_DIR = Path(__file__).parent.parent.parent / "schema"
-SCHEMA_FILE = SCHEMA_DIR / "kya-v0.1.schema.json"
+SCHEMA_FILE = Path(__file__).parent / "kya-v0.1.schema.json"
 
 # Completeness weights for scoring
 SECTION_WEIGHTS = {

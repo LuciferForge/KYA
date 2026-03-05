@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kya-agent"
-version = "0.2.0"
+version = "0.2.1"
 description = "Know Your Agent — An open standard for AI agent identity, compliance, and auditability"
 readme = "README.md"
 license = "MIT"
@@ -35,5 +35,3 @@ Issues = "https://github.com/LuciferForge/kya/issues"
 [tool.hatch.build.targets.wheel]
 packages = ["src/kya"]
 
-[tool.hatch.build.targets.wheel.shared-data]
-"schema" = "share/kya/schema"
