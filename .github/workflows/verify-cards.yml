@@ -1,0 +1,42 @@
+name: Verify KYA Cards
+
+on:
+  push:
+    paths:
+      - 'schema/examples/*.kya.json'
+  pull_request:
+    paths:
+      - 'schema/examples/*.kya.json'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install KYA with signing support
+        run: pip install -e ".[signing]"
+
+      - name: Validate all example cards
+        run: |
+          failed=0
+          for card in schema/examples/*.kya.json; do
+            echo "--- Validating: $card ---"
+            if ! kya validate "$card"; then
+              failed=1
+            fi
+          done
+          exit $failed
+
+      - name: Verify signed cards
+        run: |
+          for card in schema/examples/*.kya.json; do
+            if python3 -c "import json,sys; c=json.load(open('$card')); sys.exit(0 if '_signature' in c else 1)" 2>/dev/null; then
+              echo "--- Verifying signature: $card ---"
+              kya verify "$card"
+            fi
+          done

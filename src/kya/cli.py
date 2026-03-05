@@ -30,6 +30,21 @@ def main():
     init_parser.add_argument("--name", required=True, help="Human-readable agent name")
     init_parser.add_argument("-o", "--output", default="agent-card.kya.json", help="Output file path")
 
+    # keygen
+    keygen_parser = subparsers.add_parser("keygen", help="Generate an Ed25519 key pair for signing")
+    keygen_parser.add_argument("--name", default="default", help="Key name (default: 'default')")
+
+    # sign
+    sign_parser = subparsers.add_parser("sign", help="Sign an agent card with Ed25519")
+    sign_parser.add_argument("card", help="Path to agent card JSON file")
+    sign_parser.add_argument("--key", default=None, help="Path to private key (default: ~/.kya/keys/default.key)")
+    sign_parser.add_argument("-o", "--output", default=None, help="Output file (default: overwrite input)")
+
+    # verify
+    verify_parser = subparsers.add_parser("verify", help="Verify a signed agent card")
+    verify_parser.add_argument("card", help="Path to signed agent card JSON file")
+    verify_parser.add_argument("--key", default=None, help="Path to public key (default: use embedded key)")
+
     args = parser.parse_args()
 
     if args.command is None:
@@ -48,6 +63,57 @@ def main():
         card = load_card(args.card)
         score = compute_completeness_score(card)
         print(f"Completeness Score: {score}/100")
+
+    elif args.command == "keygen":
+        try:
+            from .signer import generate_keypair
+        except ImportError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        priv_path, pub_path = generate_keypair(name=args.name)
+        print(f"Key pair generated:")
+        print(f"  Private: {priv_path}")
+        print(f"  Public:  {pub_path}")
+        print(f"\nKeep your private key safe. Share the public key for verification.")
+
+    elif args.command == "sign":
+        try:
+            from .signer import sign_card
+        except ImportError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        from pathlib import Path
+        key_path = args.key or str(Path.home() / ".kya" / "keys" / "default.key")
+        if not Path(key_path).exists():
+            print(f"Error: Private key not found at {key_path}", file=sys.stderr)
+            print("Run 'kya keygen' first to generate a key pair.", file=sys.stderr)
+            sys.exit(1)
+        card = load_card(args.card)
+        signed = sign_card(card, key_path)
+        output_path = args.output or args.card
+        with open(output_path, "w") as f:
+            json.dump(signed, f, indent=2)
+            f.write("\n")
+        print(f"Signed: {output_path}")
+        print(f"  Key ID: {signed['_signature']['key_id']}")
+        print(f"  Signed at: {signed['_signature']['signed_at']}")
+
+    elif args.command == "verify":
+        try:
+            from .signer import verify_card
+        except ImportError as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        card = load_card(args.card)
+        result = verify_card(card, public_key_path=args.key)
+        if result["valid"]:
+            print(f"VERIFIED")
+            print(f"  Key ID:    {result['key_id']}")
+            print(f"  Signed at: {result['signed_at']}")
+            print(f"  Algorithm: {result['algorithm']}")
+        else:
+            print(f"FAILED: {result['error']}")
+            sys.exit(1)
 
     elif args.command == "init":
         skeleton = {

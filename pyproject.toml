@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "kya-agent"
-version = "0.1.0"
+version = "0.2.0"
 description = "Know Your Agent — An open standard for AI agent identity, compliance, and auditability"
 readme = "README.md"
 license = "MIT"
@@ -19,6 +19,9 @@ classifiers = [
     "Topic :: Security",
     "Topic :: Software Development :: Quality Assurance",
 ]
+
+[project.optional-dependencies]
+signing = ["cryptography>=42.0"]
 
 [project.scripts]
 kya = "kya.cli:main"

@@ -196,6 +196,27 @@ def compute_completeness_score(card: dict) -> int:
     return round((earned / total_weight) * 100)
 
 
+def check_signature(card: dict) -> dict:
+    """Check signature status of a card. Returns status dict."""
+    sig = card.get("_signature")
+    if not sig:
+        return {"status": "unsigned"}
+
+    try:
+        from .signer import verify_card
+        result = verify_card(card)
+        if result["valid"]:
+            return {
+                "status": "verified",
+                "key_id": result["key_id"],
+                "signed_at": result["signed_at"],
+            }
+        else:
+            return {"status": "invalid", "error": result["error"]}
+    except ImportError:
+        return {"status": "unverified", "note": "Install kya-agent[signing] to verify signatures"}
+
+
 def validate(card_path: str, strict: bool = False) -> dict:
     """Run full validation on an agent card. Returns result dict."""
     schema = load_schema()
@@ -204,11 +225,13 @@ def validate(card_path: str, strict: bool = False) -> dict:
     errors = []
     warnings = []
 
-    # Required fields
+    # Required fields — skip _signature from unknown field check
     errors.extend(validate_required_fields(card, schema))
 
     # Type validation
     type_errors = validate_field_types(card, schema)
+    # Filter out _signature "unknown field" errors since it's valid via patternProperties
+    type_errors = [e for e in type_errors if "'_signature'" not in e]
     if strict:
         errors.extend(type_errors)
     else:
@@ -225,6 +248,9 @@ def validate(card_path: str, strict: bool = False) -> dict:
     # Completeness score
     score = compute_completeness_score(card)
 
+    # Signature check
+    sig_status = check_signature(card)
+
     return {
         "valid": len(errors) == 0,
         "score": score,
@@ -232,6 +258,7 @@ def validate(card_path: str, strict: bool = False) -> dict:
         "warnings": warnings,
         "agent_id": card.get("agent_id", "unknown"),
         "agent_name": card.get("name", "unknown"),
+        "signature": sig_status,
     }
 
 
@@ -241,6 +268,18 @@ def print_result(result: dict) -> None:
     print(f"\nKYA Validation: {status}")
     print(f"Agent: {result['agent_name']} ({result['agent_id']})")
     print(f"Completeness Score: {result['score']}/100")
+
+    # Signature status
+    sig = result.get("signature", {})
+    sig_status = sig.get("status", "unsigned")
+    if sig_status == "verified":
+        print(f"Signature: VERIFIED (key: {sig['key_id']}, signed: {sig['signed_at']})")
+    elif sig_status == "invalid":
+        print(f"Signature: INVALID — {sig.get('error', 'unknown error')}")
+    elif sig_status == "unverified":
+        print(f"Signature: PRESENT (install kya-agent[signing] to verify)")
+    else:
+        print(f"Signature: UNSIGNED")
 
     if result["errors"]:
         print(f"\nErrors ({len(result['errors'])}):")
