@@ -68,7 +68,7 @@ kya score agent-card.kya.json
 |---------|---------|
 | **kya** | Agent identity and compliance standard |
 | [mcp-security-audit](https://pypi.org/project/mcp-security-audit/) | Security scanning for MCP servers |
-| [ai-injection-guard](https://pypi.org/project/ai-injection-guard/) | Prompt injection detection (22 patterns) |
+| [ai-injection-guard](https://pypi.org/project/ai-injection-guard/) | Prompt injection detection (75 patterns, 9 categories) |
 | [ai-decision-tracer](https://pypi.org/project/ai-decision-tracer/) | Agent decision audit trails |
 | [ai-cost-guard](https://pypi.org/project/ai-cost-guard/) | LLM budget enforcement |
 | [agent-safety-mcp](https://pypi.org/project/agent-safety-mcp/) | MCP server wrapping all safety tools |

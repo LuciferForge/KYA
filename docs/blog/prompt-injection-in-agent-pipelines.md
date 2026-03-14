@@ -74,7 +74,7 @@ if result.is_suspicious:
     log_blocked_input(result.patterns_detected)
 ```
 
-[ai-injection-guard](https://pypi.org/project/ai-injection-guard/) detects 22 distinct pattern categories.
+[ai-injection-guard](https://pypi.org/project/ai-injection-guard/) detects 75 patterns across 9 categories.
 
 ### Layer 2: Capability Constraints
 Limit what the agent can do so that even a successful injection has bounded impact. [mcp-security-audit](https://pypi.org/project/mcp-security-audit/) evaluates whether your MCP servers follow least-privilege principles.
